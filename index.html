@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Yard Fruit Calculator</title>
+  <style>
+    :root {
+      --green: #2d6a2d;
+      --green-light: #e8f5e9;
+      --yellow: #f5c842;
+      --red: #e05252;
+      --bg: #fdf9f0;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 80px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      color: var(--green);
+      line-height: 1.2;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      padding: 32px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-family: sans-serif;
+    }
+
+    /* Fruit picker */
+    .fruit-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .fruit-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 4px 8px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: sans-serif;
+    }
+
+    .fruit-btn:hover {
+      border-color: var(--green);
+      background: var(--green-light);
+    }
+
+    .fruit-btn.active {
+      border-color: var(--green);
+      background: var(--green-light);
+      box-shadow: 0 0 0 3px rgba(45,106,45,0.15);
+    }
+
+    .fruit-btn .emoji {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .fruit-btn .name {
+      font-size: 0.62rem;
+      margin-top: 5px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Inputs */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 1.05rem;
+      font-family: sans-serif;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--green);
+    }
+
+    #storePrice::-webkit-inner-spin-button,
+    #storePrice::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .prefix {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--green);
+      padding: 0 2px;
+    }
+
+
+    /* Calculate button */
+    .calc-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-family: sans-serif;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .calc-btn:hover { background: #235223; }
+    .calc-btn:active { transform: scale(0.98); }
+
+    /* Results */
+    #results {
+      margin-top: 28px;
+      display: none;
+    }
+
+    .result-hero {
+      background: var(--green);
+      color: white;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .result-hero .big-price {
+      font-size: 3.5rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .result-hero .per-fruit {
+      font-size: 0.95rem;
+      opacity: 0.8;
+      margin-top: 4px;
+      font-family: sans-serif;
+    }
+
+    .result-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .meta-chip {
+      background: var(--green-light);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    .meta-chip .val {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--green);
+    }
+
+    .meta-chip .lbl {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .verdict {
+      margin-top: 16px;
+      background: #fffbe6;
+      border: 2px solid var(--yellow);
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .verdict .badge {
+      display: inline-block;
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+    }
+
+    .store-compare {
+      margin-top: 12px;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .store-compare span {
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-family: sans-serif;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌳 The Yard Fruit Calculator</h1>
+  <p>The High Cost of Free Fruit</p>
+</header>
+
+<div class="card">
+
+  <div class="section-label">1. Pick your fruit tree</div>
+  <div class="fruit-grid" id="fruitGrid"></div>
+
+  <div class="section-label">2. Your monthly mortgage</div>
+  <div class="input-group">
+    <div class="input-row">
+      <span class="prefix">$</span>
+      <input type="number" id="mortgage" placeholder="2,500" min="1" />
+    </div>
+  </div>
+
+  <div class="section-label">3. Fruits per year</div>
+  <div class="input-group">
+    <div class="input-row">
+      <input type="number" id="fruitsPerYear" placeholder="300" min="1" />
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calculate()">Calculate My Cost 🍋</button>
+
+  <div id="results">
+    <div class="result-hero">
+      <div class="big-price" id="costPerFruit">—</div>
+      <div class="per-fruit" id="perFruitLabel">per fruit</div>
+    </div>
+    <div class="result-meta">
+      <div class="meta-chip">
+        <div class="val" id="annualCost">—</div>
+        <div class="lbl">Annual tree cost</div>
+      </div>
+      <div class="meta-chip">
+        <div class="val" id="annualYield">—</div>
+        <div class="lbl">Fruits per year</div>
+      </div>
+<div class="meta-chip">
+        <div class="val" id="yearsBreakEven">—</div>
+        <div class="lbl">Yrs to break even*</div>
+      </div>
+    </div>
+    <div class="store-compare" id="storeCompare">
+      Store price per <span id="storeUnit">fruit</span>: $<input type="number" id="storePrice" min="0.01" step="0.01" style="width:64px;border:none;border-bottom:2px solid var(--green);font-size:0.82rem;font-family:sans-serif;color:var(--text);background:transparent;outline:none;text-align:center;-moz-appearance:textfield;" oninput="this.style.width = Math.max(40, this.value.length * 9 + 20) + 'px'" /> &nbsp;|&nbsp; Your price: <span id="yourPrice">—</span>
+    </div>
+    <div class="verdict" id="verdict"></div>
+    <div class="store-compare" style="margin-top:8px;font-size:0.72rem;">
+      * vs. buying equivalent fruit at a grocery store
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Store prices derived from USDA ERS retail scanner data (2023) converted to per-piece using average fruit weights.
+</footer>
+
+<script>
+  const FRUITS = [
+    { id: 'apple',   emoji: '🍎', name: 'Apple',   yield: 500, storePrice: 0.75, unit: 'apple'   },
+    { id: 'lemon',   emoji: '🍋', name: 'Lemon',   yield: 300, storePrice: 0.26, unit: 'lemon'   },
+    { id: 'orange',  emoji: '🍊', name: 'Orange',  yield: 200, storePrice: 0.42, unit: 'orange'  },
+    { id: 'peach',   emoji: '🍑', name: 'Peach',   yield: 125, storePrice: 0.81, unit: 'peach'   },
+    { id: 'pear',    emoji: '🍐', name: 'Pear',    yield: 250, storePrice: 0.77, unit: 'pear'    },
+    { id: 'cherry',  emoji: '🍒', name: 'Cherry',  yield: 400, storePrice: 0.07, unit: 'cherry'  },
+    { id: 'plum',    emoji: '🫐', name: 'Plum',    yield: 150, storePrice: 0.40, unit: 'plum'    },
+    { id: 'fig',     emoji: '🟫', name: 'Fig',     yield:  75, storePrice: 1.00, unit: 'fig'     },
+    { id: 'lime',    emoji: '🟢', name: 'Lime',    yield: 250, storePrice: 0.27, unit: 'lime'    },
+    { id: 'avocado', emoji: '🥑', name: 'Avocado', yield: 200, storePrice: 1.22, unit: 'avocado' },
+  ];
+
+  const VERDICTS = [
+    { max: 0.10, badge: '🏆', text: (f,p,s) => `Practically free! Your ${f.name.toLowerCase()}s cost <strong>${p}</strong> each. You're basically running a farm at a profit. Sell the extras. Quit your job.` },
+    { max: 0.50, badge: '😌', text: (f,p,s) => `Respectable. ${p} per ${f.unit} is cheaper than the store's <strong>${s}</strong>. You're winning — if you don't count the time spent picking up fallen ones.` },
+    { max: 1.00, badge: '🤔', text: (f,p,s) => `Hmm. ${p} per ${f.unit} is roughly what you'd pay at the grocery store (<strong>${s}</strong>). The tree is "paying for itself" in the loosest possible sense.` },
+    { max: 5.00, badge: '😬', text: (f,p,s) => `Oof. ${p} per ${f.unit}, versus <strong>${s}</strong> at the store. Your fruit tree is basically a very slow, organic money pit. A charming one, though.` },
+    { max: Infinity, badge: '💸', text: (f,p,s) => `Those are some <em>artisanal</em> ${f.name.toLowerCase()}s. At ${p} each, you're paying more than fancy restaurants charge. Hope they taste like victory.` },
+  ];
+
+  let selectedFruit = FRUITS[1]; // default: lemon
+
+  // Build fruit grid
+  const grid = document.getElementById('fruitGrid');
+  FRUITS.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'fruit-btn' + (f.id === selectedFruit.id ? ' active' : '');
+    btn.innerHTML = `<span class="emoji">${f.emoji}</span><span class="name">${f.name}</span>`;
+    btn.onclick = () => selectFruit(f, btn);
+    grid.appendChild(btn);
+  });
+
+  // Pre-fill fruits/year on load
+  document.getElementById('fruitsPerYear').value = selectedFruit.yield;
+
+  function selectFruit(f, btn) {
+    selectedFruit = f;
+    document.querySelectorAll('.fruit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector('.calc-btn').textContent = `Calculate My Cost ${f.emoji}`;
+    document.getElementById('fruitsPerYear').value = f.yield;
+  }
+
+  function fmt(n) {
+    if (n >= 1000) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    if (n >= 10)   return '$' + n.toFixed(2);
+    if (n >= 1)    return '$' + n.toFixed(2);
+    return '$' + n.toFixed(2);
+  }
+
+  function updateResults() {
+    const mortgage      = parseFloat(document.getElementById('mortgage').value);
+    const fruitsPerYear = parseFloat(document.getElementById('fruitsPerYear').value);
+    const storePriceVal = parseFloat(document.getElementById('storePrice').value);
+
+    if (!mortgage || !fruitsPerYear || !storePriceVal || !selectedFruit) return;
+
+    const f = selectedFruit;
+    const annualMortgage  = mortgage * 12;
+    const costPerFruit    = annualMortgage / fruitsPerYear;
+    const annualStoreCost = storePriceVal * fruitsPerYear;
+    const yearsBreakEven  = annualMortgage > 0 ? (annualMortgage / annualStoreCost).toFixed(1) : '∞';
+
+    document.getElementById('costPerFruit').textContent = fmt(costPerFruit);
+    document.getElementById('annualCost').textContent   = fmt(annualMortgage);
+    document.getElementById('annualYield').textContent  = fruitsPerYear.toLocaleString();
+    document.getElementById('yearsBreakEven').textContent = annualStoreCost >= annualMortgage ? '< 1' : yearsBreakEven;
+    document.getElementById('yourPrice').textContent    = fmt(costPerFruit);
+
+    const storePriceStr = '$' + storePriceVal.toFixed(2);
+    const verdict = VERDICTS.find(v => costPerFruit < v.max);
+    document.getElementById('verdict').innerHTML =
+      `<div class="badge">${verdict.badge}</div><br>${verdict.text(f, fmt(costPerFruit), storePriceStr)}`;
+  }
+
+  document.getElementById('storePrice').addEventListener('input', updateResults);
+
+  function calculate() {
+    const mortgage      = parseFloat(document.getElementById('mortgage').value);
+    const fruitsPerYear = parseFloat(document.getElementById('fruitsPerYear').value);
+
+    if (!mortgage || !fruitsPerYear || !selectedFruit) {
+      alert('Please fill in all fields and pick a fruit tree.');
+      return;
+    }
+
+    const f = selectedFruit;
+    document.getElementById('storeUnit').textContent  = f.unit;
+    document.getElementById('storePrice').value       = f.storePrice.toFixed(2);
+    document.getElementById('perFruitLabel').textContent = `per ${f.unit} (${f.emoji})`;
+
+    const results = document.getElementById('results');
+    results.style.display = 'block';
+    updateResults();
+    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>
