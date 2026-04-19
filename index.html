@@ -152,6 +152,30 @@
     }
 
 
+    .unit-toggle {
+      display: flex;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .unit-toggle button {
+      padding: 11px 14px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: sans-serif;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .unit-toggle button.active {
+      background: var(--green);
+      color: white;
+      font-weight: bold;
+    }
+
     /* Calculate button */
     .calc-btn {
       width: 100%;
@@ -282,8 +306,12 @@
   <div class="section-label">2. Your monthly mortgage</div>
   <div class="input-group">
     <div class="input-row">
-      <span class="prefix">$</span>
+      <span class="prefix" id="currencySymbol">$</span>
       <input type="number" id="mortgage" placeholder="2,500" min="1" />
+      <div class="unit-toggle">
+        <button id="btnUSD" class="active" onclick="setCurrency('USD')">USD</button>
+        <button id="btnEUR" onclick="setCurrency('EUR')">EUR</button>
+      </div>
     </div>
   </div>
 
@@ -316,7 +344,7 @@
       </div>
     </div>
     <div class="store-compare" id="storeCompare">
-      Store price per <span id="storeUnit">fruit</span>: $<input type="number" id="storePrice" min="0.01" step="0.01" style="width:64px;border:none;border-bottom:2px solid var(--green);font-size:0.82rem;font-family:sans-serif;color:var(--text);background:transparent;outline:none;text-align:center;-moz-appearance:textfield;" oninput="this.style.width = Math.max(40, this.value.length * 9 + 20) + 'px'" /> &nbsp;|&nbsp; Your price: <span id="yourPrice">—</span>
+      Store price per <span id="storeUnit">fruit</span>: <span id="storeCurrencySymbol">$</span><input type="number" id="storePrice" min="0.01" step="0.01" style="width:64px;border:none;border-bottom:2px solid var(--green);font-size:0.82rem;font-family:sans-serif;color:var(--text);background:transparent;outline:none;text-align:center;-moz-appearance:textfield;" oninput="this.style.width = Math.max(40, this.value.length * 9 + 20) + 'px'" /> &nbsp;|&nbsp; Your price: <span id="yourPrice">—</span>
     </div>
     <div class="verdict" id="verdict"></div>
     <div class="store-compare" style="margin-top:8px;font-size:0.72rem;">
@@ -326,22 +354,30 @@
 
 </div>
 
+<div style="width:100%;max-width:520px;margin-top:24px;text-align:center;font-family:sans-serif;">
+  <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;">Don't see your tree?</div>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="fruitRequest" placeholder="e.g. Kumquat" style="flex:1;border:2px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-size:1rem;font-family:sans-serif;color:var(--text);outline:none;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='#e5e7eb'" />
+    <button onclick="requestFruit()" style="background:var(--green);color:white;border:none;border-radius:10px;padding:11px 18px;font-size:0.9rem;font-family:sans-serif;font-weight:bold;cursor:pointer;">Request</button>
+  </div>
+</div>
+
 <footer>
   Store prices derived from USDA ERS retail scanner data (2023) converted to per-piece using average fruit weights.
 </footer>
 
 <script>
   const FRUITS = [
-    { id: 'apple',   emoji: '🍎', name: 'Apple',   yield: 500, storePrice: 0.75, unit: 'apple'   },
-    { id: 'lemon',   emoji: '🍋', name: 'Lemon',   yield: 300, storePrice: 0.26, unit: 'lemon'   },
-    { id: 'orange',  emoji: '🍊', name: 'Orange',  yield: 200, storePrice: 0.42, unit: 'orange'  },
-    { id: 'peach',   emoji: '🍑', name: 'Peach',   yield: 125, storePrice: 0.81, unit: 'peach'   },
-    { id: 'pear',    emoji: '🍐', name: 'Pear',    yield: 250, storePrice: 0.77, unit: 'pear'    },
-    { id: 'cherry',  emoji: '🍒', name: 'Cherry',  yield: 400, storePrice: 0.07, unit: 'cherry'  },
-    { id: 'plum',       emoji: '🟣', name: 'Plum',      yield: 150,  storePrice: 0.40, unit: 'plum'      },
-    { id: 'blueberry', emoji: '🫐', name: 'Blueberry', yield: 2000, storePrice: 0.01, unit: 'blueberry' },
-    { id: 'lime',    emoji: '🟢', name: 'Lime',    yield: 250, storePrice: 0.27, unit: 'lime'    },
-    { id: 'avocado', emoji: '🥑', name: 'Avocado', yield: 200, storePrice: 1.22, unit: 'avocado' },
+    { id: 'apple',     emoji: '🍎', name: 'Apple',     yield:  50, storePrice: 0.75, unit: 'apple'     },
+    { id: 'lemon',     emoji: '🍋', name: 'Lemon',     yield:  30, storePrice: 0.26, unit: 'lemon'     },
+    { id: 'orange',    emoji: '🍊', name: 'Orange',    yield:  20, storePrice: 0.42, unit: 'orange'    },
+    { id: 'peach',     emoji: '🍑', name: 'Peach',     yield:  13, storePrice: 0.81, unit: 'peach'     },
+    { id: 'pear',      emoji: '🍐', name: 'Pear',      yield:  25, storePrice: 0.77, unit: 'pear'      },
+    { id: 'cherry',    emoji: '🍒', name: 'Cherry',    yield:  40, storePrice: 0.07, unit: 'cherry'    },
+    { id: 'plum',      emoji: '🟣', name: 'Plum',      yield:  15, storePrice: 0.40, unit: 'plum'      },
+    { id: 'blueberry', emoji: '🫐', name: 'Blueberry', yield: 200, storePrice: 0.01, unit: 'blueberry' },
+    { id: 'lime',      emoji: '🟢', name: 'Lime',      yield:  25, storePrice: 0.27, unit: 'lime'      },
+    { id: 'avocado',   emoji: '🥑', name: 'Avocado',   yield:  20, storePrice: 1.22, unit: 'avocado'   },
   ];
 
   const VERDICTS = [
@@ -353,6 +389,17 @@
   ];
 
   let selectedFruit = FRUITS[1]; // default: lemon
+  let currency = 'USD';
+  const SYMBOLS = { USD: '$', EUR: '€' };
+
+  function setCurrency(c) {
+    currency = c;
+    document.getElementById('currencySymbol').textContent = SYMBOLS[c];
+    document.getElementById('storeCurrencySymbol').textContent = SYMBOLS[c];
+    document.getElementById('btnUSD').classList.toggle('active', c === 'USD');
+    document.getElementById('btnEUR').classList.toggle('active', c === 'EUR');
+    if (document.getElementById('results').style.display !== 'none') updateResults();
+  }
 
   // Build fruit grid
   const grid = document.getElementById('fruitGrid');
@@ -376,10 +423,9 @@
   }
 
   function fmt(n) {
-    if (n >= 1000) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    if (n >= 10)   return '$' + n.toFixed(2);
-    if (n >= 1)    return '$' + n.toFixed(2);
-    return '$' + n.toFixed(2);
+    const s = SYMBOLS[currency];
+    if (n >= 1000) return s + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    return s + n.toFixed(2);
   }
 
   function updateResults() {
@@ -401,13 +447,23 @@
     document.getElementById('yearsBreakEven').textContent = annualStoreCost >= annualMortgage ? '< 1' : yearsBreakEven;
     document.getElementById('yourPrice').textContent    = fmt(costPerFruit);
 
-    const storePriceStr = '$' + storePriceVal.toFixed(2);
+    const storePriceStr = SYMBOLS[currency] + storePriceVal.toFixed(2);
     const verdict = VERDICTS.find(v => costPerFruit < v.max);
     document.getElementById('verdict').innerHTML =
       `<div class="badge">${verdict.badge}</div><br>${verdict.text(f, fmt(costPerFruit), storePriceStr)}`;
   }
 
   document.getElementById('storePrice').addEventListener('input', updateResults);
+
+  function requestFruit() {
+    const fruit = document.getElementById('fruitRequest').value.trim();
+    if (!fruit) return;
+    window.location.href = `mailto:matt27884@gmail.com?subject=yard%20fruit%20requested&body=Please%20add%3A%20${encodeURIComponent(fruit)}`;
+  }
+
+  document.getElementById('fruitRequest').addEventListener('keydown', e => {
+    if (e.key === 'Enter') requestFruit();
+  });
 
   function calculate() {
     const mortgage      = parseFloat(document.getElementById('mortgage').value);
