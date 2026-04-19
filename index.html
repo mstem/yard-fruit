@@ -363,21 +363,21 @@
 </div>
 
 <footer>
-  Store prices derived from USDA ERS retail scanner data (2023) converted to per-piece using average fruit weights.
+  Store prices derived from USDA ERS retail scanner data (2023), updated for estimated inflation, and converted to per-piece using average fruit weights.
 </footer>
 
 <script>
   const FRUITS = [
-    { id: 'apple',     emoji: '🍎', name: 'Apple',     yield:  50, storePrice: 0.75, unit: 'apple'     },
-    { id: 'lemon',     emoji: '🍋', name: 'Lemon',     yield:  30, storePrice: 0.26, unit: 'lemon'     },
-    { id: 'orange',    emoji: '🍊', name: 'Orange',    yield:  20, storePrice: 0.42, unit: 'orange'    },
-    { id: 'peach',     emoji: '🍑', name: 'Peach',     yield:  13, storePrice: 0.81, unit: 'peach'     },
-    { id: 'pear',      emoji: '🍐', name: 'Pear',      yield:  25, storePrice: 0.77, unit: 'pear'      },
+    { id: 'apple',     emoji: '🍎', name: 'Apple',     yield:  50, storePrice: 0.77, unit: 'apple'     },
+    { id: 'lemon',     emoji: '🍋', name: 'Lemon',     yield:  30, storePrice: 0.27, unit: 'lemon'     },
+    { id: 'orange',    emoji: '🍊', name: 'Orange',    yield:  20, storePrice: 0.43, unit: 'orange'    },
+    { id: 'peach',     emoji: '🍑', name: 'Peach',     yield:  13, storePrice: 0.83, unit: 'peach'     },
+    { id: 'pear',      emoji: '🍐', name: 'Pear',      yield:  25, storePrice: 0.79, unit: 'pear'      },
     { id: 'cherry',    emoji: '🍒', name: 'Cherry',    yield:  40, storePrice: 0.07, unit: 'cherry'    },
-    { id: 'plum',      emoji: '🟣', name: 'Plum',      yield:  15, storePrice: 0.40, unit: 'plum'      },
+    { id: 'plum',      emoji: '🟣', name: 'Plum',      yield:  15, storePrice: 0.41, unit: 'plum'      },
     { id: 'blueberry', emoji: '🫐', name: 'Blueberry', yield: 200, storePrice: 0.01, unit: 'blueberry' },
-    { id: 'lime',      emoji: '🟢', name: 'Lime',      yield:  25, storePrice: 0.27, unit: 'lime'      },
-    { id: 'avocado',   emoji: '🥑', name: 'Avocado',   yield:  20, storePrice: 1.22, unit: 'avocado'   },
+    { id: 'lime',      emoji: '🟢', name: 'Lime',      yield:  25, storePrice: 0.28, unit: 'lime'      },
+    { id: 'avocado',   emoji: '🥑', name: 'Avocado',   yield:  20, storePrice: 1.25, unit: 'avocado'   },
   ];
 
   const VERDICTS = [
@@ -455,10 +455,31 @@
 
   document.getElementById('storePrice').addEventListener('input', updateResults);
 
+  const WEB3FORMS_KEY = 'YOUR_ACCESS_KEY';
+
   function requestFruit() {
-    const fruit = document.getElementById('fruitRequest').value.trim();
+    const input = document.getElementById('fruitRequest');
+    const fruit = input.value.trim();
     if (!fruit) return;
-    window.location.href = `mailto:matt27884@gmail.com?subject=yard%20fruit%20requested&body=Please%20add%3A%20${encodeURIComponent(fruit)}`;
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: 'yard fruit requested',
+        message: 'Please add: ' + fruit
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        input.value = '';
+        input.placeholder = '✓ Requested!';
+        setTimeout(() => input.placeholder = 'e.g. Kumquat', 3000);
+      }
+    })
+    .catch(() => {});
   }
 
   document.getElementById('fruitRequest').addEventListener('keydown', e => {
